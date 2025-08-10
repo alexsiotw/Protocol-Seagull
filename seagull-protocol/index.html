@@ -62,39 +62,29 @@
     </div>
 
     <script>
-        // Initialize state
-        let failedAttempts = 0;
-        let audioPlayed = false;
+        // Initialize failed attempts and audio played status from localStorage
+        let failedAttempts = parseInt(localStorage.getItem('failedAttempts') || '0');
+        let audioPlayed = localStorage.getItem('audioPlayed') === 'true';
 
-        // Fetch IP-based state on page load
-        window.onload = async function() {
-            try {
-                const response = await fetch('/.netlify/functions/track-ip');
-                const data = await response.json();
-                failedAttempts = data.failedAttempts || 0;
-                audioPlayed = data.audioPlayed || false;
+        // Check initial page state on load
+        window.onload = function() {
+            if (failedAttempts >= 3) {
+                showPage('deniedPage');
+                document.getElementById('alarmAudio').play();
+            } else if (audioPlayed) {
+                showPage('selfDestructPage');
+            } else {
+                showPage('entryPage');
+            }
 
-                if (failedAttempts >= 3) {
-                    showPage('deniedPage');
-                    document.getElementById('alarmAudio').play();
-                } else if (audioPlayed) {
+            // Add event listener for final audio completion
+            const finalAudio = document.getElementById('finalAudio');
+            if (finalAudio) {
+                finalAudio.addEventListener('ended', function() {
+                    audioPlayed = true;
+                    localStorage.setItem('audioPlayed', 'true');
                     showPage('selfDestructPage');
-                } else {
-                    showPage('entryPage');
-                }
-
-                // Add event listener for final audio completion
-                const finalAudio = document.getElementById('finalAudio');
-                if (finalAudio) {
-                    finalAudio.addEventListener('ended', async function() {
-                        audioPlayed = true;
-                        await updateIpState({ failedAttempts, audioPlayed: true });
-                        showPage('selfDestructPage');
-                    });
-                }
-            } catch (error) {
-                console.error('Error fetching IP state:', error);
-                showPage('entryPage'); // Fallback
+                });
             }
         };
 
@@ -103,27 +93,16 @@
             document.getElementById(pageId).classList.add('active');
         }
 
-        async function updateIpState(state) {
-            try {
-                await fetch('/.netlify/functions/track-ip', {
-                    method: 'POST',
-                    body: JSON.stringify(state)
-                });
-            } catch (error) {
-                console.error('Error updating IP state:', error);
-            }
-        }
-
-        async function checkEntryWord() {
+        function checkEntryWord() {
             const word = document.getElementById('entryWord').value.trim();
             if (word.toLowerCase() === 'park') {
                 showPage('authPage');
                 document.getElementById('entryError').classList.add('hidden');
-                failedAttempts = 0;
-                await updateIpState({ failedAttempts, audioPlayed });
+                failedAttempts = 0; // Reset attempts on success
+                localStorage.setItem('failedAttempts', failedAttempts);
             } else {
                 failedAttempts++;
-                await updateIpState({ failedAttempts, audioPlayed });
+                localStorage.setItem('failedAttempts', failedAttempts);
                 document.getElementById('entryError').classList.remove('hidden');
                 if (failedAttempts >= 3) {
                     showPage('deniedPage');
@@ -132,7 +111,7 @@
             }
         }
 
-        async function checkAuthCode() {
+        function checkAuthCode() {
             const code = document.getElementById('authCode').value.trim();
             if (code === 'V5LM-83XZ') {
                 showPage('instructionsPage');
