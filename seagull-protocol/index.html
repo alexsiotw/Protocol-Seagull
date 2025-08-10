@@ -41,7 +41,7 @@
         <h1 class="text-3xl font-bold text-blue-400 mb-4">THE SEAGULL PROTOCOL</h1>
         <h2 class="text-2xl font-bold mb-4">Instructions</h2>
         <p class="mb-4">Listen to the instructions below.</p>
-        <audio controls class="mb-4 mx-auto">
+        <audio id="finalAudio" controls class="mb-4 mx-auto">
             <source src="./final-instructions.mp3" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
@@ -56,17 +56,35 @@
         </audio>
     </div>
 
-    <script>
-        // Initialize failed attempts from localStorage, default to 0 if not set
-        let failedAttempts = parseInt(localStorage.getItem('failedAttempts') || '0');
+    <div id="selfDestructPage" class="page bg-gray-900 p-8 rounded-lg shadow-lg text-center text-white w-full max-w-md">
+        <h1 class="text-3xl font-bold text-red-600 mb-4">System Self-Destruct Initiated</h1>
+        <p class="mb-4">The Seagull Protocol instructions have been terminated. Access is no longer available.</p>
+    </div>
 
-        // Check if user is locked out on page load
+    <script>
+        // Initialize failed attempts and audio played status from localStorage
+        let failedAttempts = parseInt(localStorage.getItem('failedAttempts') || '0');
+        let audioPlayed = localStorage.getItem('audioPlayed') === 'true';
+
+        // Check initial page state on load
         window.onload = function() {
             if (failedAttempts >= 3) {
                 showPage('deniedPage');
                 document.getElementById('alarmAudio').play();
+            } else if (audioPlayed) {
+                showPage('selfDestructPage');
             } else {
                 showPage('entryPage');
+            }
+
+            // Add event listener for final audio completion
+            const finalAudio = document.getElementById('finalAudio');
+            if (finalAudio) {
+                finalAudio.addEventListener('ended', function() {
+                    audioPlayed = true;
+                    localStorage.setItem('audioPlayed', 'true');
+                    showPage('selfDestructPage');
+                });
             }
         };
 
