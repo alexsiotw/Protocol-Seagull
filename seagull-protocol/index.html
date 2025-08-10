@@ -11,7 +11,7 @@
     </style>
 </head>
 <body class="bg-gray-900 flex items-center justify-center h-screen">
-    <div id="entryPage" class="page active bg-gray-800 p-8 rounded-lg shadow-lg text-center text-white w-full max-w-md">
+    <div id="entryPage" class="page bg-gray-800 p-8 rounded-lg shadow-lg text-center text-white w-full max-w-md">
         <h1 class="text-3xl font-bold text-blue-400 mb-4">THE SEAGULL PROTOCOL</h1>
         <h2 class="text-2xl font-bold mb-4">Entry Page</h2>
         <p class="mb-4">Listen to the instructions and enter the required word.</p>
@@ -57,7 +57,18 @@
     </div>
 
     <script>
-        let failedAttempts = 0;
+        // Initialize failed attempts from localStorage, default to 0 if not set
+        let failedAttempts = parseInt(localStorage.getItem('failedAttempts') || '0');
+
+        // Check if user is locked out on page load
+        window.onload = function() {
+            if (failedAttempts >= 3) {
+                showPage('deniedPage');
+                document.getElementById('alarmAudio').play();
+            } else {
+                showPage('entryPage');
+            }
+        };
 
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
@@ -70,8 +81,10 @@
                 showPage('authPage');
                 document.getElementById('entryError').classList.add('hidden');
                 failedAttempts = 0; // Reset attempts on success
+                localStorage.setItem('failedAttempts', failedAttempts);
             } else {
                 failedAttempts++;
+                localStorage.setItem('failedAttempts', failedAttempts);
                 document.getElementById('entryError').classList.remove('hidden');
                 if (failedAttempts >= 3) {
                     showPage('deniedPage');
