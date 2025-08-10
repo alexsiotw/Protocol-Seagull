@@ -3,123 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seagull Protocol Instructions</title>
+    <title>Seagull Protocol Termination</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .page { display: none; }
-        .page.active { display: block; }
-    </style>
 </head>
 <body class="bg-gray-900 flex items-center justify-center h-screen">
-    <div id="entryPage" class="page bg-gray-800 p-8 rounded-lg shadow-lg text-center text-white w-full max-w-md">
-        <h1 class="text-3xl font-bold text-blue-400 mb-4">THE SEAGULL PROTOCOL</h1>
-        <h2 class="text-2xl font-bold mb-4">Entry Page</h2>
-        <p class="mb-4">Listen to the instructions and enter the required word.</p>
-        <audio controls class="mb-4 mx-auto">
-            <source src="./entry-instructions.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
-        <input type="text" id="entryWord" placeholder="Enter the word" class="p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4 w-full">
-        <button onclick="checkEntryWord()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">Submit</button>
-        <p id="entryError" class="text-red-500 mt-4 hidden">Incorrect word. Please try again.</p>
+    <div class="bg-gray-800 p-8 rounded-lg shadow-lg text-center text-white w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-4">Seagull Protocol Termination</h1>
+        <p class="text-lg">The Seagull Protocol has been terminated. All normal operations may now resume. Please type your full name via the Discord application.</p>
     </div>
-
-    <div id="authPage" class="page bg-gray-800 p-8 rounded-lg shadow-lg text-center text-white w-full max-w-md">
-        <h1 class="text-3xl font-bold text-blue-400 mb-4">THE SEAGULL PROTOCOL</h1>
-        <h2 class="text-2xl font-bold mb-4">Authorization Page</h2>
-        <p class="mb-4">Listen to the instructions and enter the authorization code.</p>
-        <audio controls class="mb-4 mx-auto">
-            <source src="./auth-instructions.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
-        <input type="text" id="authCode" placeholder="Enter the code" class="p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4 w-full">
-        <button onclick="checkAuthCode()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">Submit</button>
-        <p id="authError" class="text-red-500 mt-4 hidden">Incorrect code. Please try again.</p>
-    </div>
-
-    <div id="instructionsPage" class="page bg-gray-800 p-8 rounded-lg shadow-lg text-center text-white w-full max-w-md">
-        <h1 class="text-3xl font-bold text-blue-400 mb-4">THE SEAGULL PROTOCOL</h1>
-        <h2 class="text-2xl font-bold mb-4">Instructions</h2>
-        <p class="mb-4">Listen to the instructions below.</p>
-        <audio id="finalAudio" controls class="mb-4 mx-auto">
-            <source src="./final-instructions.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
-    </div>
-
-    <div id="deniedPage" class="page bg-red-900 p-8 rounded-lg shadow-lg text-center text-white w-full max-w-md">
-        <h1 class="text-3xl font-bold text-red-600 mb-4">Access Denied</h1>
-        <p class="mb-4">Too many incorrect attempts. Access to the Seagull Protocol is restricted.</p>
-        <audio id="alarmAudio" autoplay>
-            <source src="./alarm.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
-    </div>
-
-    <div id="selfDestructPage" class="page bg-gray-900 p-8 rounded-lg shadow-lg text-center text-white w-full max-w-md">
-        <h1 class="text-3xl font-bold text-red-600 mb-4">Access Terminated</h1>
-        <p class="mb-4">The Seagull Protocol instructions have been terminated. Access is no longer available.</p>
-    </div>
-
-    <script>
-        // Initialize failed attempts and audio played status from localStorage
-        let failedAttempts = parseInt(localStorage.getItem('failedAttempts') || '0');
-        let audioPlayed = localStorage.getItem('audioPlayed') === 'true';
-
-        // Check initial page state on load
-        window.onload = function() {
-            if (failedAttempts >= 3) {
-                showPage('deniedPage');
-                document.getElementById('alarmAudio').play();
-            } else if (audioPlayed) {
-                showPage('selfDestructPage');
-            } else {
-                showPage('entryPage');
-            }
-
-            // Add event listener for final audio completion
-            const finalAudio = document.getElementById('finalAudio');
-            if (finalAudio) {
-                finalAudio.addEventListener('ended', function() {
-                    audioPlayed = true;
-                    localStorage.setItem('audioPlayed', 'true');
-                    showPage('selfDestructPage');
-                });
-            }
-        };
-
-        function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-        }
-
-        function checkEntryWord() {
-            const word = document.getElementById('entryWord').value.trim();
-            if (word.toLowerCase() === 'park') {
-                showPage('authPage');
-                document.getElementById('entryError').classList.add('hidden');
-                failedAttempts = 0; // Reset attempts on success
-                localStorage.setItem('failedAttempts', failedAttempts);
-            } else {
-                failedAttempts++;
-                localStorage.setItem('failedAttempts', failedAttempts);
-                document.getElementById('entryError').classList.remove('hidden');
-                if (failedAttempts >= 3) {
-                    showPage('deniedPage');
-                    document.getElementById('alarmAudio').play();
-                }
-            }
-        }
-
-        function checkAuthCode() {
-            const code = document.getElementById('authCode').value.trim();
-            if (code === 'V5LM-83XZ') {
-                showPage('instructionsPage');
-                document.getElementById('authError').classList.add('hidden');
-            } else {
-                document.getElementById('authError').classList.remove('hidden');
-            }
-        }
-    </script>
 </body>
 </html>
