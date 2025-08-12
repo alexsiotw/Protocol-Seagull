@@ -1,0 +1,99 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Access Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes scan {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+        .scan-line {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: rgba(255, 0, 0, 0.5);
+            animation: scan 5s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen overflow-hidden relative">
+    <div class="scan-line"></div>
+    <div id="loginPage" class="bg-gray-800 p-8 rounded-lg shadow-lg text-center w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-4 text-red-500 pulse">Secure Access Portal</h1>
+        <p class="mb-4">Enter your credentials to access restricted systems.</p>
+        <input type="text" id="username" placeholder="Username" class="p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4 w-full">
+        <input type="password" id="password" placeholder="Password" class="p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4 w-full">
+        <button onclick="checkLogin()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full">Login</button>
+        <p id="loginError" class="text-red-500 mt-4 hidden">Invalid username or password.</p>
+    </div>
+    <div id="dashboard" class="hidden bg-gray-800 p-8 rounded-lg shadow-lg text-center w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-4 text-red-500 pulse">System Dashboard</h1>
+        <p class="mb-4">Select a system to access.</p>
+        <button onclick="window.location.href='lockdown-portal.html'" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full mb-2">Lockdown Portal</button>
+        <button onclick="window.location.href='index.html'" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full">Seagull Protocol</button>
+    </div>
+
+    <script>
+        function checkLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            if (username === 'RaymondReddington' && password === 'RR0312') {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                document.getElementById('loginError').classList.add('hidden');
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
