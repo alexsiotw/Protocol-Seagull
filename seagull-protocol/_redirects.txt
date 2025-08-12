@@ -1,1 +1,1 @@
-/*    /index.html    200
+/ /login.html 200 /lockdown-portal /lockdown-portal.html 200 /seagull /index.html 200
