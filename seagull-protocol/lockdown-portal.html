@@ -1,0 +1,137 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lockdown Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes scan {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+        .scan-line {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: rgba(255, 0, 0, 0.5);
+            animation: scan 5s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen overflow-hidden relative">
+    <div class="scan-line"></div>
+    <div id="authPage" class="bg-gray-800 p-8 rounded-lg shadow-lg text-center w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-4 text-red-500 pulse">Secure Lockdown Portal</h1>
+        <p class="mb-4">Enter the security code to access the lockdown system.</p>
+        <input type="text" id="securityCode" placeholder="Enter security code" class="p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4 w-full">
+        <button onclick="checkSecurityCode()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full">Submit</button>
+        <p id="codeError" class="text-red-500 mt-4 hidden">Access denied. Incorrect code.</p>
+    </div>
+    <div id="lockdownPage" class="hidden bg-gray-800 p-8 rounded-lg shadow-lg text-center w-full max-w-md">
+        <header class="text-4xl font-bold mb-8 text-red-500 pulse">Lockdown Initiation Portal</header>
+        <div id="timer" class="text-6xl font-mono mb-8 pulse">05:00</div>
+        <button id="startButton" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mb-4">Initiate Lockdown</button>
+        <audio id="audio" src="./lockdown-timer.mp3" loop></audio>
+        <div id="status" class="text-2xl mt-4 hidden">Lockdown Initiated</div>
+    </div>
+
+    <script>
+        function checkSecurityCode() {
+            const code = document.getElementById('securityCode').value.trim();
+            if (code.toLowerCase() === 'raymond reddington') {
+                document.getElementById('authPage').classList.add('hidden');
+                document.getElementById('lockdownPage').classList.remove('hidden');
+                document.getElementById('codeError').classList.add('hidden');
+            } else {
+                document.getElementById('codeError').classList.remove('hidden');
+            }
+        }
+
+        const startButton = document.getElementById('startButton');
+        const timerDisplay = document.getElementById('timer');
+        const audio = document.getElementById('audio');
+        const status = document.getElementById('status');
+
+        let timeLeft = 300; // 5 minutes in seconds
+        let audioStarted = false;
+
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const seconds = (timeLeft % 60).toString().padStart(2, '0');
+            timerDisplay.textContent = `${minutes}:${seconds}`;
+        }
+
+        function startTimer() {
+            startButton.classList.add('hidden');
+            audio.play();
+            audio.currentTime = 4; // Start audio at 4 seconds
+            audioStarted = true;
+
+            const interval = setInterval(() => {
+                if (audioStarted && audio.currentTime >= 303) { // Stop audio at 303 seconds (5:03)
+                    audio.pause();
+                }
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimer();
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    audio.pause();
+                    timerDisplay.classList.add('hidden');
+                    status.classList.remove('hidden');
+                }
+            }, 1000);
+        }
+
+        startButton.addEventListener('click', startTimer);
+    </script>
+</body>
+</html>
