@@ -3,13 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seagull Protocol Termination</title>
+    <title>Lockdown Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes scan {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+        .scan-line {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: rgba(255, 0, 0, 0.5);
+            animation: scan 5s linear infinite;
+        }
+    </style>
 </head>
-<body class="bg-gray-900 flex items-center justify-center h-screen">
-    <div class="bg-gray-800 p-8 rounded-lg shadow-lg text-center text-white w-full max-w-md">
-        <h1 class="text-2xl font-bold mb-4">Seagull Protocol Termination</h1>
-        <p class="text-lg">The Seagull Protocol has been terminated. All normal operations may now resume. Please type your full name via the Discord application.</p>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen overflow-hidden relative">
+    <div class="scan-line"></div>
+    <div id="authPage" class="bg-gray-800 p-8 rounded-lg shadow-lg text-center w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-4 text-red-500 pulse">Secure Lockdown Portal</h1>
+        <p class="mb-4">Enter the security code to access the lockdown system.</p>
+        <input type="text" id="securityCode" placeholder="Enter security code" class="p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4 w-full">
+        <button onclick="checkSecurityCode()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full">Submit</button>
+        <p id="codeError" class="text-red-500 mt-4 hidden">Access denied. Incorrect code.</p>
     </div>
+    <div id="lockdownPage" class="hidden bg-gray-800 p-8 rounded-lg shadow-lg text-center w-full max-w-md">
+        <header class="text-4xl font-bold mb-8 text-red-500 pulse">Lockdown Initiation Portal</header>
+        <div id="timer" class="text-6xl font-mono mb-8 pulse">05:00</div>
+        <button id="startButton" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mb-4">Initiate Lockdown</button>
+        <audio id="audio" src="./lockdown-timer.mp3" loop></audio>
+        <div id="status" class="text-2xl mt-4 hidden">Lockdown Initiated</div>
+    </div>
+
+    <script>
+        function checkSecurityCode() {
+            const code = document.getElementById('securityCode').value.trim();
+            if (code.toLowerCase() === 'raymond reddington') {
+                document.getElementById('authPage').classList.add('hidden');
+                document.getElementById('lockdownPage').classList.remove('hidden');
+                document.getElementById('codeError').classList.add('hidden');
+            } else {
+                document.getElementById('codeError').classList.remove('hidden');
+            }
+        }
+
+        const startButton = document.getElementById('startButton');
+        const timerDisplay = document.getElementById('timer');
+        const audio = document.getElementById('audio');
+        const status = document.getElementById('status');
+
+        let timeLeft = 300; // 5 minutes in seconds
+        let audioStarted = false;
+
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const seconds = (timeLeft % 60).toString().padStart(2, '0');
+            timerDisplay.textContent = `${minutes}:${seconds}`;
+        }
+
+        function startTimer() {
+            startButton.classList.add('hidden');
+            audio.play();
+            audio.currentTime = 4; // Start audio at 4 seconds
+            audioStarted = true;
+
+            const interval = setInterval(() => {
+                if (audioStarted && audio.currentTime >= 303) { // Stop audio at 303 seconds (5:03)
+                    audio.pause();
+                }
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimer();
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    audio.pause();
+                    timerDisplay.classList.add('hidden');
+                    status.classList.remove('hidden');
+                }
+            }, 1000);
+        }
+
+        startButton.addEventListener('click', startTimer);
+    </script>
 </body>
 </html>
