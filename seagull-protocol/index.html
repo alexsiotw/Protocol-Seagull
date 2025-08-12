@@ -28,9 +28,17 @@
 </head>
 <body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen overflow-hidden relative">
     <div class="scan-line"></div>
-    <div id="authPage" class="bg-gray-800 p-8 rounded-lg shadow-lg text-center w-full max-w-md">
+    <div id="loginPage" class="bg-gray-800 p-8 rounded-lg shadow-lg text-center w-full max-w-md">
         <h1 class="text-2xl font-bold mb-4 text-red-500 pulse">Secure Lockdown Portal</h1>
-        <p class="mb-4">Enter the security code to access the lockdown system.</p>
+        <p class="mb-4">Enter your credentials to access the lockdown system.</p>
+        <input type="text" id="username" placeholder="Username" class="p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4 w-full">
+        <input type="password" id="password" placeholder="Password" class="p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4 w-full">
+        <button onclick="checkLogin()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full">Login</button>
+        <p id="loginError" class="text-red-500 mt-4 hidden">Invalid username or password.</p>
+    </div>
+    <div id="authPage" class="hidden bg-gray-800 p-8 rounded-lg shadow-lg text-center w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-4 text-red-500 pulse">Secure Lockdown Portal</h1>
+        <p class="mb-4">Enter the security code to access the lockdown controls.</p>
         <input type="text" id="securityCode" placeholder="Enter security code" class="p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4 w-full">
         <button onclick="checkSecurityCode()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full">Submit</button>
         <p id="codeError" class="text-red-500 mt-4 hidden">Access denied. Incorrect code.</p>
@@ -44,6 +52,18 @@
     </div>
 
     <script>
+        function checkLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            if (username === 'RaymondReddington' && password === 'RR0312') {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('authPage').classList.remove('hidden');
+                document.getElementById('loginError').classList.add('hidden');
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        }
+
         function checkSecurityCode() {
             const code = document.getElementById('securityCode').value.trim();
             if (code.toLowerCase() === 'raymond reddington') {
